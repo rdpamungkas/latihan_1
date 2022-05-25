@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latihan_1/data_model.dart';
+import 'package:latihan_1/detail_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -96,13 +97,19 @@ class _MainScreenState extends State<MainScreen> {
                 itemCount: items.length + 1,
                 itemBuilder: ((context, index) {
                   if (index < items.length) {
+                    final item = items[index];
                     return Card(
                       child: ListTile(
                         leading: Image.network(items[index].imageLocationUrl),
                         title: Text(items[index].name),
                         subtitle: Text(items[index].phoneNumber),
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute)
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: ((context) => DetailScreen(item: item)),
+                            ),
+                          );
                         },
                       ),
                     );
