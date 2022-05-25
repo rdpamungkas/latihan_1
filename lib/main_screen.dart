@@ -5,18 +5,19 @@ import 'package:http/http.dart' as http;
 import 'package:latihan_1/data_model.dart';
 
 class MainScreen extends StatefulWidget {
-  MainScreen({Key? key}) : super(key: key);
+  const MainScreen({Key? key}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  
   bool isLoading = false;
   int page = 1;
   bool hasMore = true;
-  List<DataModel> items=[];
+  List<DataModel> items = [];
+
+  final scrollController = ScrollController();
 
   Future fetch() async {
     if (isLoading) return;
@@ -48,29 +49,72 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future refersh() async {
+    setState(() {
+      items.clear();
+      hasMore = true;
+      page = 1;
+      isLoading = false;
+    });
+
+    fetch();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    fetch();
+
+    scrollController.addListener(() {
+      if (scrollController.position.maxScrollExtent ==
+          scrollController.offset) {
+        fetch();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: const Text('Judul Halaman'),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: (() {
-            setState(() {
-              fetch();
-            });
-          }),
-          child: const Icon(Icons.add),
-        ),
         body: Container(
             margin: const EdgeInsets.symmetric(horizontal: 8),
-            child: ListView.builder(
-              itemCount: items.length,
-              itemBuilder: ((context, index) {
-                return Card(
-                  child: ListTile(title: Text('${items[index].name}')),
-                );
-              }),
+            child: RefreshIndicator(
+              onRefresh: refersh,
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: items.length + 1,
+                itemBuilder: ((context, index) {
+                  if (index < items.length) {
+                    return Card(
+                      child: ListTile(
+                        leading: Image.network(items[index].imageLocationUrl),
+                        title: Text(items[index].name),
+                        subtitle: Text(items[index].phoneNumber),
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute)
+                        },
+                      ),
+                    );
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: hasMore
+                        ? const Center(child: CircularProgressIndicator())
+                        : const Center(child: Text('No more data to load')),
+                  );
+                }),
+              ),
             )));
   }
 }
